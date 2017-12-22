@@ -45,7 +45,7 @@
         <TextBox x:Name="delimiterType"
                  Height="25"
                  TextWrapping="Wrap"
-                 Text="&quot;"
+                 Text=","
                  Width="25"
                  Margin="200,-23,1,0"
                  HorizontalAlignment="Left"
@@ -61,10 +61,16 @@
                  IsReadOnly="True" />
         <CheckBox x:Name="hasHeaderRow"
                   Content="Includes header row"
-                  Checked="CheckBox_Checked"
                   IsChecked="True"
                   FontSize="10" />
-      </StackPanel>
+                <DataGrid x:Name="dataGrid" Height="200" Width="400" HorizontalAlignment="Left" VerticalAlignment="Top">
+                    <DataGrid.RowStyle>
+                        <Style TargetType="DataGridRow">
+                            <Setter Property="IsEnabled" Value="{Binding RelativeSource={RelativeSource Self},Path=IsNewItem,Mode=OneWay}" />
+                        </Style>
+                    </DataGrid.RowStyle>
+                </DataGrid>
+            </StackPanel>
     </DockPanel>
   </Grid>
 </Window>
