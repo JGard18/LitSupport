@@ -23,6 +23,7 @@ namespace LitSupport
     public partial class MainWindow : Window
     {
         private string filename;
+        string[,] values;
 
         public MainWindow()
         {
@@ -45,36 +46,6 @@ namespace LitSupport
         {
             string[] splitString = s.Split(';');
             return splitString;
-        }
-
-        private Boolean ContainsEmailDomain(string s, List<string> l)
-        {
-            if(l.IndexOf(s) != -1)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        private Boolean CheckNotDomain(string s, string[] l)
-        {
-            Boolean finalCheck = false;
-            for(int i = 0; i < l.Length; i++)
-            {
-                if (l[i].Contains(s))
-                {
-                    finalCheck = false;
-                }
-                else
-                {
-                    finalCheck = true;
-                    break;
-                }
-            }
-            return finalCheck;
         }
 
         public char ConvertStringChar(string stringVal)
@@ -197,15 +168,11 @@ namespace LitSupport
 
         private void ParseCSV(string filename)
         {
-            int to;
-            int cc;
-            int bcc;
-            int from;
             bool b = (Boolean)hasHeaderRow.IsChecked;
             char delimiterChar = ConvertStringChar(delimiterType.Text);
 
             // Get the data.
-            string[,] values = LoadCsv(filename, delimiterChar);
+            values = LoadCsv(filename, delimiterChar);
             int num_rows = values.GetUpperBound(0) + 1;
             int num_cols = values.GetUpperBound(1) + 1;
 
@@ -219,116 +186,16 @@ namespace LitSupport
 
         private void checkAllDomains(string[,] values)
         { 
-           
             //compare the various fields to see if values other than the requested domain exist
             //values will be separated by a semi-colon if there's more than one entry in a field
             string domain = domainText.Text;
-            List<List<string>> tempArray = new List<List<string>>();
-            List<List<string>> finalArray = new List<List<string>>();
-            int recordCount = fieldInfo[0].Count;
-            fieldCount = fieldInfo.Count;
-            Boolean bccDomain = false;
-            Boolean ccDomain = false;
-            Boolean toDomain = false;
-            Boolean fromDomain = false;
-            Boolean bccNot = false;
-            Boolean ccNot = false;
-            Boolean fromNot = false;
-            Boolean toNot = false;
+            
 
-            //iterate through the field info array, searching for the desired domain name within the to/from/cc field
-            //if they're known.  otherwise search the whole thing
-            for (int record = 0; record < recordCount; record++)
-            {
-                for (int field = 0; field < fieldCount; field++)
-                {
-                    if (ContainsEmailDomain(domain, fieldInfo[record]))
-                    {
-                        tempArray[record][field] = fieldInfo[record][field];
-                    }
-                    //now we have new, smaller, array for items that have the domain in question present somewhere
+        }
 
-                    //all fields exist in the header so we can target search the fields for the domain where it must be in at least
-                    //from and one of the other fields
-                    if (to >= 0 && cc >= 0 && bcc >= 0 && from >= 0)
-                    {
-                        //check that the domain is in the from field
-                        if (tempArray[record][from].Contains(domain))
-                        {
-                            fromDomain = true;
-                            //if found, then check To, since we want inter-company email, or it can be empty
-                            if (tempArray[record][to].Contains(domain))
-                            {
-                                toDomain = true;
-                                //if found, then move to CC field
-                                if (tempArray[record][cc].Contains(domain))
-                                {
-                                    ccDomain = true;
-                                    //if found, then continue to BCC field
-                                    if (tempArray[record][bcc].Contains(domain))
-                                    {
-                                        bccDomain = true;
-                                        //check for multiple address in this field
-                                        if (MultipleEmailsCheck(tempArray[record][bcc]))
-                                        {
-                                            string[] tempList = SplitDomains(tempArray[record][bcc]);
-                                            //need to now search this array for values not matching the domain requested
-                                            bccNot = CheckNotDomain(domain, tempList);
-                                        }
-                                    }
-                                    //check for multiple address in this field
-                                    if (MultipleEmailsCheck(tempArray[record][cc]))
-                                    {
-                                        string[] tempList = SplitDomains(tempArray[record][cc]);
-                                        //need to now search this array for values not matching the domain requested
-                                        ccNot = CheckNotDomain(domain, tempList);
-                                    }
-                                }
-                                //check for multiple address in this field
-                                if (MultipleEmailsCheck(tempArray[record][to]))
-                                {
-                                    string[] tempList = SplitDomains(tempArray[record][to]);
-                                    //need to now search this array for values not matching the domain requested
-                                    toNot = CheckNotDomain(domain, tempList);
-                                }
-                            }
-                            //check for multiple address in this field
-                            if (MultipleEmailsCheck(tempArray[record][from]))
-                            {
-                                string[] tempList = SplitDomains(tempArray[record][from]);
-                                //need to now search this array for values not matching the domain requested
-                                fromNot = CheckNotDomain(domain, tempList);
-                            }
-                        }
-                    }
-                    //bcc is missing from the header
-                    else if (to >= 0 && cc >= 0 && bcc == -1 && from >= 0)
-                    {
-
-                    }
-                    //cc and bcc are missing from the header
-                    else if (to >= 0 && cc == -1 && bcc == -1 && from >= 0)
-                    {
-
-                    }
-                    //the rest of the potential combinations, involving searching the entire table
-                    else
-                    {
-
-                    }
-                    //if records all come back as domain-only, add to final array
-                    if (toDomain && fromDomain && ccDomain && bccDomain && !toNot && !ccNot && !bccNot && !fromNot)
-                    {
-                        finalArray[record][field] = tempArray[record][field];
-                    }
-                }
-
-            }
-
-
-
-
-
+        private void RunButton_Click(object sender, RoutedEventArgs e)
+        {
+            checkAllDomains(values);
 
         }
     }
